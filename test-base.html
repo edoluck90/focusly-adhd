@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Test Basilare</title>
+<style>
+body{
+  font-family:Arial,sans-serif;
+  background:#f0f0f0;
+  padding:20px;
+  text-align:center;
+}
+.box{
+  background:white;
+  border-radius:15px;
+  padding:30px;
+  margin:20px auto;
+  max-width:400px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.1);
+}
+h1{
+  color:#333;
+  margin-bottom:10px;
+}
+.btn{
+  display:block;
+  width:100%;
+  padding:15px;
+  margin:10px 0;
+  font-size:18px;
+  font-weight:bold;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  color:white;
+}
+.btn1{background:#4CAF50}
+.btn2{background:#2196F3}
+.btn3{background:#FF9800}
+.btn4{background:#f44336}
+.info{
+  background:#e3f2fd;
+  padding:15px;
+  border-radius:10px;
+  margin-top:20px;
+  font-size:14px;
+  line-height:1.6;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h1>🔧 Test Ultra-Basilare</h1>
+  <p style="color:#666;margin-bottom:20px">Verifica se JavaScript funziona</p>
+
+  <button class="btn btn1" onclick="test1()">
+    Test 1: Alert Semplice
+  </button>
+
+  <button class="btn btn2" onclick="test2()">
+    Test 2: Cambia Testo
+  </button>
+
+  <button class="btn btn3" onclick="test3()">
+    Test 3: Notifiche Check
+  </button>
+
+  <button class="btn btn4" onclick="test4()">
+    Test 4: Notifica Diretta
+  </button>
+
+  <div id="result" class="info">
+    ℹ️ Premi i pulsanti in ordine.<br>
+    Se nulla succede = JavaScript disattivo
+  </div>
+</div>
+
+<script>
+// Test 1: Alert basilare
+function test1() {
+  alert('✅ JavaScript FUNZIONA!
+
+Se vedi questo popup, JS è attivo.');
+  document.getElementById('result').innerHTML = '✅ <strong>Test 1 OK!</strong><br>Alert funziona. Prova Test 2.';
+  document.getElementById('result').style.background = '#d4edda';
+  document.getElementById('result').style.color = '#155724';
+}
+
+// Test 2: Modifica DOM
+function test2() {
+  alert('Test 2 iniziato...');
+  document.getElementById('result').innerHTML = '✅ <strong>Test 2 OK!</strong><br>Modifiche DOM funzionano. Prova Test 3.';
+  document.getElementById('result').style.background = '#d4edda';
+  document.getElementById('result').style.color = '#155724';
+}
+
+// Test 3: Check Notification API
+function test3() {
+  if (!('Notification' in window)) {
+    alert('❌ PROBLEMA TROVATO!
+
+Notification API NON supportata.
+
+Il tuo iOS/Safari non supporta le notifiche web.');
+    document.getElementById('result').innerHTML = '❌ <strong>Notification API NON supportata!</strong><br>iOS/Safari non supporta notifiche web su questo dispositivo.';
+    document.getElementById('result').style.background = '#f8d7da';
+    document.getElementById('result').style.color = '#721c24';
+    return;
+  }
+
+  var perm = Notification.permission;
+  alert('✅ Notification API ESISTE!
+
+Permesso attuale: ' + perm + '
+
+(granted = ok, denied = negato, default = non chiesto)');
+
+  document.getElementById('result').innerHTML = '✅ <strong>Test 3 OK!</strong><br>Notification API supportata!<br>Permesso: <strong>' + perm + '</strong><br><br>Prova Test 4 per richiedere permessi.';
+  document.getElementById('result').style.background = '#d4edda';
+  document.getElementById('result').style.color = '#155724';
+}
+
+// Test 4: Richiedi permesso e invia notifica
+function test4() {
+  if (!('Notification' in window)) {
+    alert('❌ Notification API non supportata!');
+    return;
+  }
+
+  if (Notification.permission === 'granted') {
+    // Già permesso, invia subito
+    inviaNotifica();
+  } else if (Notification.permission !== 'denied') {
+    // Chiedi permesso
+    alert('Sto per chiedere i permessi notifiche.
+
+Premi OK, poi CONSENTI nel popup iOS.');
+
+    Notification.requestPermission().then(function(permission) {
+      if (permission === 'granted') {
+        alert('✅ Permessi concessi!
+
+Sto inviando una notifica di test.
+
+CHIUDI questa app dopo aver premuto OK per vedere la notifica!');
+        inviaNotifica();
+      } else {
+        alert('❌ Permessi negati!
+
+Hai rifiutato i permessi.');
+        document.getElementById('result').innerHTML = '❌ Permessi negati. Non posso inviare notifiche.';
+        document.getElementById('result').style.background = '#f8d7da';
+      }
+    });
+  } else {
+    alert('❌ Permessi già negati prima!
+
+Devi resettare il sito:
+
+1. Impostazioni → Safari → Avanzate
+2. Dati siti web
+3. Elimina github.io');
+  }
+}
+
+function inviaNotifica() {
+  try {
+    var notification = new Notification('🎉 FUNZIONA!', {
+      body: 'Se vedi questa notifica, tutto OK! ✅',
+      icon: 'https://via.placeholder.com/192?text=OK',
+      tag: 'test'
+    });
+
+    alert('✅ Notifica inviata!
+
+⚠️ IMPORTANTE:
+CHIUDI questa app (premi Home)
+per vedere la notifica!
+
+Su iOS le notifiche NON appaiono
+quando l'app è aperta.');
+
+    document.getElementById('result').innerHTML = '✅ <strong>Notifica inviata!</strong><br><br>⚠️ <strong>CHIUDI L'APP</strong> (premi Home) per vederla!<br><br>Su iOS le notifiche appaiono solo in background.';
+    document.getElementById('result').style.background = '#fff3cd';
+    document.getElementById('result').style.color = '#856404';
+
+  } catch (error) {
+    alert('❌ ERRORE!
+
+' + error.message);
+    document.getElementById('result').innerHTML = '❌ <strong>Errore:</strong><br>' + error.message;
+    document.getElementById('result').style.background = '#f8d7da';
+  }
+}
+
+// Auto test all'avvio
+window.onload = function() {
+  alert('✅ JavaScript caricato!
+
+La pagina è pronta.
+Premi i pulsanti in ordine (1, 2, 3, 4).');
+};
+</script>
+
+</body>
+</html>
