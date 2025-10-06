@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#21808D">
+<meta name="description" content="App di produttività basata sulla Matrice di Eisenhower per persone con ADHD. © 2025 Edoardo Lucchina (Edoluck90)">
+<title>Focusly ADHD</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--color-teal-500:#21808D;--color-teal-400:#32B8C6;--color-red-500:#ef4444;--color-green-500:#10b981;--color-orange-500:#f59e0b;--color-gray-500:#6b7280}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#FCFCF9;color:#1a1a1a;line-height:1.6;overflow-x:hidden}
+.app-header{background:#fff;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,.1);position:sticky;top:0;z-index:100}
+.header-content{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+.app-title{font-size:18px;font-weight:700;color:var(--color-teal-500)}
+.header-right{display:flex;align-items:center;gap:12px}
+.level-badge{background:linear-gradient(135deg,var(--color-teal-500),var(--color-teal-400));color:#fff;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600}
+.main-content{max-width:1200px;margin:0 auto;padding:20px;padding-bottom:100px}
+.tab-panel{display:none;animation:fadeIn .3s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat-item{background:#fff;padding:16px;border-radius:12px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.stat-icon{font-size:28px}
+.stat-value{font-size:20px;font-weight:700}
+.stat-label{font-size:12px;color:#6c757d}
+.progress-section{background:#fff;padding:20px;border-radius:16px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.progress-header{display:flex;justify-content:space-between;margin-bottom:12px;font-size:14px;font-weight:600;color:#6c757d}
+.progress-bar{height:12px;background:#e5e7eb;border-radius:6px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--color-teal-500),var(--color-teal-400));border-radius:6px;transition:width .5s ease}
+.eisenhower-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:20px}
+.quadrant{background:#fff;border-radius:16px;padding:20px;min-height:300px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.quadrant-header{margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid}
+.quadrant-header h3{font-size:16px;margin:0 0 4px 0;font-weight:700}
+.quadrant-subtitle{font-size:13px;opacity:.8;font-weight:600}
+.q1{border-top:4px solid var(--color-red-500)}
+.q1 .quadrant-header{border-color:var(--color-red-500);color:var(--color-red-500)}
+.q2{border-top:4px solid var(--color-green-500)}
+.q2 .quadrant-header{border-color:var(--color-green-500);color:var(--color-green-500)}
+.q3{border-top:4px solid var(--color-orange-500)}
+.q3 .quadrant-header{border-color:var(--color-orange-500);color:var(--color-orange-500)}
+.q4{border-top:4px solid var(--color-gray-500)}
+.q4 .quadrant-header{border-color:var(--color-gray-500);color:var(--color-gray-500)}
+.task-list{display:flex;flex-direction:column;gap:12px}
+.task-item{background:#f8f9fa;padding:12px;border-radius:8px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:all .2s}
+.task-item:hover{background:#f3f4f6;transform:translateX(4px)}
+.task-checkbox{width:20px;height:20px;border:2px solid var(--color-gray-500);border-radius:6px;flex-shrink:0;margin-top:2px;cursor:pointer;transition:all .2s}
+.task-checkbox.checked{background:var(--color-teal-500);border-color:var(--color-teal-500);position:relative}
+.task-checkbox.checked::after{content:'✓';color:#fff;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;font-weight:700}
+.task-title{font-size:14px;font-weight:600}
+.task-description{font-size:12px;color:#6c757d}
+.task-item.completed .task-title{text-decoration:line-through;opacity:.6}
+.fab{position:fixed;bottom:80px;right:20px;width:60px;height:60px;background:linear-gradient(135deg,var(--color-teal-500),var(--color-teal-400));border:none;border-radius:50%;box-shadow:0 4px 20px rgba(33,128,141,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .3s;z-index:99}
+.fab:hover{transform:scale(1.1)}
+.fab-icon{font-size:32px;color:#fff;line-height:1}
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:1000;padding:20px;overflow-y:auto;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-content{background:#fff;border-radius:20px;max-width:500px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:22px;font-weight:700;margin:0}
+.modal-close{background:none;border:none;font-size:32px;color:#6c757d;cursor:pointer;line-height:1}
+.modal-body{padding:24px}
+.form-step{display:none}
+.form-step.active{display:block}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;margin-bottom:8px;font-weight:600;font-size:14px}
+.form-input,.form-textarea{width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:15px;font-family:inherit}
+.form-input:focus,.form-textarea:focus{outline:none;border-color:var(--color-teal-500)}
+.form-textarea{resize:vertical;min-height:80px}
+.btn-primary{width:100%;padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,var(--color-teal-500),var(--color-teal-400));color:#fff;box-shadow:0 4px 12px rgba(33,128,141,.3);transition:transform .2s}
+.btn-primary:hover{transform:translateY(-2px)}
+.question-card{text-align:center;padding:20px 0}
+.question-card h3{font-size:20px;margin-bottom:12px}
+.question-help{color:#6c757d;font-size:14px;margin-bottom:24px}
+.button-group{display:flex;flex-direction:column;gap:12px}
+.choice-btn{padding:16px 24px;background:#fff;border:2px solid #e5e7eb;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s}
+.choice-btn:hover{border-color:var(--color-teal-500);background:#FCFCF9}
+.result-card{text-align:center}
+.result-icon{font-size:64px;margin-bottom:16px}
+.quadrant-badge{display:inline-block;padding:12px 24px;border-radius:12px;font-weight:600;font-size:16px;margin-bottom:20px;color:#fff}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e7eb;display:flex;justify-content:space-around;padding:8px 0;z-index:99}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;background:none;border:none;cursor:pointer;color:#6c757d;transition:color .2s}
+.nav-item.active{color:var(--color-teal-500)}
+.nav-icon{font-size:24px}
+.nav-label{font-size:11px;font-weight:600}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(0,0,0,.9);color:#fff;padding:16px 24px;border-radius:16px;font-size:15px;font-weight:600;box-shadow:0 10px 40px rgba(0,0,0,.3);z-index:10000;opacity:0;transition:all .3s;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--color-green-500)}
+.tutorial-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);backdrop-filter:blur(10px);z-index:10000;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .3s ease;padding:20px}
+.tutorial-overlay.show{display:flex;opacity:1}
+.tutorial-container{background:linear-gradient(135deg,#fff 0%,#f8f9fa 100%);border-radius:24px;max-width:500px;width:100%;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .5s ease}
+.tutorial-progress{position:relative;height:6px;background:#e9ecef;border-radius:3px;margin-bottom:32px;overflow:hidden}
+.tutorial-progress-bar{height:100%;background:linear-gradient(90deg,var(--color-teal-500),var(--color-teal-400));border-radius:3px;transition:width .4s ease}
+.tutorial-progress-text{position:absolute;top:12px;right:0;font-size:12px;font-weight:600;color:#6c757d}
+.tutorial-content{min-height:320px;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+.tutorial-step{text-align:center;width:100%}
+.tutorial-icon{font-size:72px;margin-bottom:24px;animation:bounce 2s ease infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.tutorial-title{font-size:26px;font-weight:700;color:#1a1a1a;margin:0 0 16px 0;line-height:1.3}
+.tutorial-description{font-size:16px;color:#495057;line-height:1.6;margin:0 0 24px 0}
+.tutorial-highlight{background:linear-gradient(135deg,var(--color-teal-500),var(--color-teal-400));color:#fff;padding:12px 20px;border-radius:12px;font-weight:600;font-size:15px;margin-top:20px;display:inline-block}
+.tutorial-quadrants-preview{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
+.tutorial-quad{padding:16px;border-radius:12px;font-weight:600;font-size:14px;color:#fff}
+.tutorial-q1{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.tutorial-q2{background:linear-gradient(135deg,#10b981,#059669)}
+.tutorial-q3{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.tutorial-q4{background:linear-gradient(135deg,#6b7280,#4b5563)}
+.tutorial-rewards{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.tutorial-reward-item{background:#f8f9fa;padding:12px 20px;border-radius:10px;font-weight:600;font-size:15px;color:#495057;border-left:4px solid var(--color-teal-500)}
+.tutorial-final-reward{display:flex;gap:16px;justify-content:center;margin-top:24px}
+.tutorial-reward-big{background:linear-gradient(135deg,var(--color-teal-500),var(--color-teal-400));padding:20px;border-radius:16px;color:#fff;flex:1;text-align:center;box-shadow:0 4px 12px rgba(33,128,141,.3)}
+.tutorial-reward-icon{font-size:48px;margin-bottom:8px}
+.tutorial-reward-value{font-size:24px;font-weight:700}
+.tutorial-reward-label{font-size:14px;font-weight:600;margin-top:8px}
+.tutorial-navigation{display:flex;justify-content:center;margin-top:32px}
+.tutorial-btn{padding:14px 32px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,var(--color-teal-500),var(--color-teal-400));color:#fff;box-shadow:0 4px 12px rgba(33,128,141,.3);transition:transform .2s}
+.tutorial-btn:hover{transform:translateY(-2px)}
+.celebration-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);z-index:10001;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .5s ease}
+.celebration-overlay.show{display:flex;opacity:1}
+.celebration-content{text-align:center;animation:celebrationBounce .8s ease}
+@keyframes celebrationBounce{0%{transform:scale(0)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+.celebration-emoji{font-size:120px;margin-bottom:20px;animation:rotate 1s ease}
+@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.celebration-text{font-size:48px;font-weight:700;color:#fff;margin-bottom:16px;text-shadow:0 4px 8px rgba(0,0,0,.3)}
+.celebration-badge{font-size:28px;font-weight:600;color:#fbbf24;text-shadow:0 2px 4px rgba(0,0,0,.3)}
+@media (max-width:768px){.eisenhower-grid{grid-template-columns:1fr}.stats-bar{grid-template-columns:1fr}.fab{bottom:70px;right:16px;width:56px;height:56px}.tutorial-final-reward{flex-direction:column}}
+.app-footer{text-align:center;padding:20px;color:#6c757d;font-size:12px;margin-top:40px}
+.app-footer strong{color:var(--color-teal-500)}
+</style>
+</head>
+<body><div id="tutorial-overlay" class="tutorial-overlay">
+<div class="tutorial-container">
+<div class="tutorial-progress">
+<div class="tutorial-progress-bar" id="tutorial-progress-bar" style="width:0%"></div>
+<span class="tutorial-progress-text" id="tutorial-progress-text">1 / 6</span>
+</div>
+<div class="tutorial-content" id="tutorial-content"></div>
+<div class="tutorial-navigation">
+<button id="tutorial-next" class="tutorial-btn">Avanti →</button>
+</div>
+</div>
+</div>
+<div id="celebration-overlay" class="celebration-overlay">
+<div class="celebration-content">
+<div class="celebration-emoji">🎊</div>
+<div class="celebration-text">+100 XP</div>
+<div class="celebration-badge">🎓 First Steps</div>
+</div>
+</div>
+<header class="app-header">
+<div class="header-content">
+<div class="header-left"><h1 class="app-title">Focusly ADHD</h1></div>
+<div class="header-right"><div class="level-badge" id="level-badge">Lv. 1</div></div>
+</div>
+</header>
+<main class="main-content">
+<div id="dashboard-tab" class="tab-panel active">
+<div class="stats-bar">
+<div class="stat-item"><div class="stat-icon">⚡</div><div class="stat-info"><div class="stat-value" id="xp-value">0</div><div class="stat-label">XP</div></div></div>
+<div class="stat-item"><div class="stat-icon">🔥</div><div class="stat-info"><div class="stat-value" id="streak-value">0</div><div class="stat-label">Streak</div></div></div>
+<div class="stat-item"><div class="stat-icon">📅</div><div class="stat-info"><div class="stat-value" id="weekly-value">0/15</div><div class="stat-label">Settimanali</div></div></div>
+</div>
+<div class="progress-section">
+<div class="progress-header"><span>Livello 1</span><span id="progress-text">0 / 100 XP</span></div>
+<div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+<div class="eisenhower-grid">
+<div class="quadrant q1">
+<div class="quadrant-header"><h3>🔴 Urgente & Importante</h3><div class="quadrant-subtitle">Fai Subito</div></div>
+<div class="task-list" id="q1-tasks"><p style="color:#9ca3af;font-size:14px;text-align:center">Nessun task</p></div>
+</div>
+<div class="quadrant q2">
+<div class="quadrant-header"><h3>🟢 Importante & Non Urgente</h3><div class="quadrant-subtitle">Pianifica</div></div>
+<div class="task-list" id="q2-tasks"><p style="color:#9ca3af;font-size:14px;text-align:center">Nessun task</p></div>
+</div>
+<div class="quadrant q3">
+<div class="quadrant-header"><h3>🟠 Urgente & Non Importante</h3><div class="quadrant-subtitle">Delega</div></div>
+<div class="task-list" id="q3-tasks"><p style="color:#9ca3af;font-size:14px;text-align:center">Nessun task</p></div>
+</div>
+<div class="quadrant q4">
+<div class="quadrant-header"><h3>⚪ Non Urgente & Non Importante</h3><div class="quadrant-subtitle">Pianifica senza fretta</div></div>
+<div class="task-list" id="q4-tasks"><p style="color:#9ca3af;font-size:14px;text-align:center">Nessun task</p></div>
+</div>
+</div>
+<div class="app-footer"><strong>© 2025 Edoardo Lucchina (Edoluck90)</strong><br>Focusly ADHD - Tutti i diritti riservati</div>
+</div>
+<div id="reports-tab" class="tab-panel">
+<h2 style="margin-bottom:20px">📊 Report Settimanali</h2>
+<div style="background:#fff;padding:24px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+<h3 style="margin-bottom:16px">Statistiche</h3>
+<p style="color:#6c757d">I tuoi report settimanali appariranno qui dopo aver completato alcuni task!</p>
+</div>
+</div>
+<div id="settings-tab" class="tab-panel">
+<h2 style="margin-bottom:20px">⚙️ Impostazioni</h2>
+<div style="background:#fff;padding:24px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+<h3 style="margin-bottom:16px">Informazioni App</h3>
+<p style="margin-bottom:8px"><strong>Nome:</strong> Focusly ADHD</p>
+<p style="margin-bottom:8px"><strong>Versione:</strong> 2.0.0</p>
+<p style="margin-bottom:8px"><strong>Creatore:</strong> Edoardo Lucchina (Edoluck90)</p>
+<p style="margin-bottom:8px"><strong>Anno:</strong> 2025</p>
+<p style="margin-bottom:16px"><strong>Licenza:</strong> MIT</p>
+</div>
+<div style="margin-top:20px;background:#fff;padding:24px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+<h3 style="margin-bottom:16px">🔔 Notifiche</h3>
+<p style="color:#6c757d;margin-bottom:16px;font-size:14px">Ricevi promemoria per task, streak giornaliero e celebrazioni!</p>
+<button onclick="requestNotifications()" style="padding:12px 24px;background:linear-gradient(135deg,#21808D,#32B8C6);color:#fff;border:none;border-radius:12px;font-weight:600;cursor:pointer;margin-bottom:12px;width:100%">🔔 Attiva Notifiche</button>
+<button onclick="testNotification()" style="padding:12px 24px;background:#fff;color:#21808D;border:2px solid #21808D;border-radius:12px;font-weight:600;cursor:pointer;width:100%">🧪 Test Notifica</button>
+<div style="margin-top:16px;padding:12px;background:#f8f9fa;border-radius:8px;font-size:13px;color:#495057">
+<strong>Tipi di notifiche:</strong><br>
+• ⏰ Promemoria mattutino (9:00)<br>
+• 🔥 Reminder streak serale (20:00)<br>
+• 🎊 Celebrazioni level up<br>
+• ✅ Task completati<br>
+• 📊 Badge icon con contatore
+</div>
+</div>
+<div style="margin-top:20px;background:#fff;padding:24px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+<button onclick="resetTutorial()" style="padding:12px 24px;background:linear-gradient(135deg,#21808D,#32B8C6);color:#fff;border:none;border-radius:12px;font-weight:600;cursor:pointer">🔄 Ripeti Tutorial</button>
+</div>
+</div>
+</main>
+<button class="fab" id="add-task-btn"><span class="fab-icon">+</span></button>
+<div id="task-modal" class="modal">
+<div class="modal-content">
+<div class="modal-header"><h2>✨ Nuovo Task</h2><button class="modal-close" id="close-modal">&times;</button></div>
+<div class="modal-body">
+<div id="step-1" class="form-step active">
+<div class="form-group"><label>Che cosa devi fare?</label>
+<input type="text" id="task-title" class="form-input" placeholder="Es: Preparare presentazione"></div>
+<div class="form-group"><label>Descrizione (opzionale)</label>
+<textarea id="task-description" class="form-textarea" placeholder="Aggiungi dettagli..."></textarea></div>
+<button class="btn-primary" id="next-step-1">Avanti →</button>
+</div>
+<div id="step-2" class="form-step">
+<div class="question-card"><h3>⏰ Questo task ha una scadenza imminente?</h3>
+<p class="question-help">Deve essere fatto oggi o nei prossimi 2-3 giorni?</p>
+<div class="button-group">
+<button class="choice-btn" data-urgent="true">Sì, è urgente</button>
+<button class="choice-btn" data-urgent="false">No, non urgente</button>
+</div></div>
+</div>
+<div id="step-3" class="form-step">
+<div class="question-card"><h3>🎯 Questo task contribuisce ai tuoi obiettivi principali?</h3>
+<p class="question-help">È importante per la tua crescita personale o professionale?</p>
+<div class="button-group">
+<button class="choice-btn" data-important="true">Sì, è importante</button>
+<button class="choice-btn" data-important="false">No, non importante</button>
+</div></div>
+</div>
+<div id="step-4" class="form-step">
+<div class="result-card"><div class="result-icon">🎯</div><h3>Perfetto!</h3>
+<p style="color:#6c757d;margin-bottom:20px">Ho categorizzato il tuo task:</p>
+<div class="quadrant-badge" id="suggested-quadrant">Quadrante</div>
+<button class="btn-primary" id="save-task">Salva Task +50 XP</button>
+</div></div>
+</div>
+</div>
+</div>
+<nav class="bottom-nav">
+<button class="nav-item active" data-tab="dashboard"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></button>
+<button class="nav-item" data-tab="reports"><span class="nav-icon">📈</span><span class="nav-label">Report</span></button>
+<button class="nav-item" data-tab="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Impostazioni</span></button>
+</nav>
+<div id="toast" class="toast"></div>
+<script>
+const appData={userStats:{level:1,currentXP:0,nextLevelXP:100,streak:0,weeklyCompleted:0,weeklyGoal:15,totalCompleted:0},tasks:{q1:[],q2:[],q3:[],q4:[]},tempTaskData:{title:'',description:'',isUrgent:null,isImportant:null,quadrant:''}};const tutorialSteps=[{icon:'👋',title:'Benvenuto in Focusly ADHD!',description:"Un'app pensata per aiutarti a gestire la produttività in modo semplice e divertente, usando la Matrice di Eisenhower.",extra:'<div class="tutorial-highlight">💡 Design specifico per menti ADHD</div>'},{icon:'📊',title:'La Matrice di Eisenhower',description:'Organizza i task in 4 quadranti: Urgente & Importante, Importante, Urgente, e Non Prioritario. Così saprai sempre cosa fare prima!',extra:'<div class="tutorial-quadrants-preview"><div class="tutorial-quad tutorial-q1">🔴 Fai Subito</div><div class="tutorial-quad tutorial-q2">🟢 Pianifica</div><div class="tutorial-quad tutorial-q3">🟠 Delega</div><div class="tutorial-quad tutorial-q4">⚪ Pianifica senza fretta</div></div>'},{icon:'➕',title:'Aggiungi il Tuo Primo Task',description:"Tocca il pulsante + e rispondi a 2 semplici domande. L'app categorizza automaticamente il task nel quadrante giusto!",extra:'<div class="tutorial-highlight">✨ Niente stress, ci pensiamo noi!</div>'},{icon:'🎮',title:'Guadagna Punti e Livelli',description:'Ogni task completato ti fa guadagnare XP! Sali di livello, mantieni lo streak giornaliero e sblocca badge speciali.',extra:'<div class="tutorial-rewards"><div class="tutorial-reward-item">⚡ +50 XP per task</div><div class="tutorial-reward-item">🔥 Streak bonus</div><div class="tutorial-reward-item">🏆 Badge esclusivi</div></div>'},{icon:'📈',title:'Monitora i Tuoi Progressi',description:'Visualizza report settimanali con statistiche dettagliate. Scopri i tuoi pattern di produttività e migliora continuamente!',extra:'<div class="tutorial-highlight">📊 Report visivi e facili da leggere</div>'},{icon:'🎉',title:'Sei Pronto!',description:'Hai completato il tutorial! Come ricompensa ricevi 100 XP e il badge "First Steps". Inizia subito a organizzare la tua giornata!',extra:'<div class="tutorial-final-reward"><div class="tutorial-reward-big"><div class="tutorial-reward-icon">⚡</div><div class="tutorial-reward-value">+100 XP</div></div><div class="tutorial-reward-big"><div class="tutorial-reward-icon">🎓</div><div class="tutorial-reward-label">Badge: First Steps</div></div></div>'}];let currentTutorialStep=0;document.addEventListener('DOMContentLoaded',()=>{console.log('🚀 Focusly ADHD v2.0 initialized');console.log('© 2025 Edoardo Lucchina (Edoluck90)');loadUserData();initializeUI();attachEventListeners();if(!hasCompletedTutorial()){setTimeout(()=>showTutorial(),500)}else{renderDashboard();setTimeout(()=>NotificationSystem.init(),1000)}});function hasCompletedTutorial(){return localStorage.getItem('tutorial_completed')==='true'}function showTutorial(){const overlay=document.getElementById('tutorial-overlay');overlay.classList.add('show');document.body.style.overflow='hidden';renderTutorialStep(0)}function renderTutorialStep(step){const stepData=tutorialSteps[step];const content=document.getElementById('tutorial-content');const progressBar=document.getElementById('tutorial-progress-bar');const progressText=document.getElementById('tutorial-progress-text');const nextBtn=document.getElementById('tutorial-next');content.innerHTML=`<div class="tutorial-step"><div class="tutorial-icon">${stepData.icon}</div><h2 class="tutorial-title">${stepData.title}</h2><p class="tutorial-description">${stepData.description}</p>${stepData.extra||''}</div>`;const progress=((step+1)/tutorialSteps.length)*100;progressBar.style.width=progress+'%';progressText.textContent=`${step+1} / ${tutorialSteps.length}`;if(step===tutorialSteps.length-1){nextBtn.textContent='Inizia! 🚀'}else{nextBtn.textContent='Avanti →'}}function nextTutorialStep(){if(currentTutorialStep<tutorialSteps.length-1){currentTutorialStep++;const content=document.getElementById('tutorial-content');content.style.opacity='0';setTimeout(()=>{renderTutorialStep(currentTutorialStep);content.style.opacity='1'},300)}else{completeTutorial()}}function completeTutorial(){localStorage.setItem('tutorial_completed','true');appData.userStats.currentXP+=100;if(appData.userStats.currentXP>=appData.userStats.nextLevelXP){appData.userStats.level++;appData.userStats.currentXP-=appData.userStats.nextLevelXP;appData.userStats.nextLevelXP=Math.floor(appData.userStats.nextLevelXP*1.5)}saveUserData();updateStatsUI();const overlay=document.getElementById('tutorial-overlay');overlay.classList.remove('show');document.body.style.overflow='auto';setTimeout(()=>{const celebration=document.getElementById('celebration-overlay');celebration.classList.add('show');setTimeout(()=>{celebration.classList.remove('show');renderDashboard();NotificationSystem.requestPermission()},3000)},500)}function resetTutorial(){localStorage.removeItem('tutorial_completed');currentTutorialStep=0;showToast('✅ Tutorial resettato! Ricarica la pagina per rivederlo.','success')}function loadUserData(){const saved=localStorage.getItem('userData');if(saved){try{const data=JSON.parse(saved);Object.assign(appData,data)}catch(e){console.error('Error loading data:',e)}}}function saveUserData(){localStorage.setItem('userData',JSON.stringify(appData))}function initializeUI(){updateStatsUI()}function updateStatsUI(){document.getElementById('level-badge').textContent=`Lv. ${appData.userStats.level}`;document.getElementById('xp-value').textContent=appData.userStats.currentXP;document.getElementById('streak-value').textContent=appData.userStats.streak;document.getElementById('weekly-value').textContent=`${appData.userStats.weeklyCompleted}/${appData.userStats.weeklyGoal}`;const percentage=(appData.userStats.currentXP/appData.userStats.nextLevelXP)*100;document.getElementById('progress-fill').style.width=percentage+'%';document.getElementById('progress-text').textContent=`${appData.userStats.currentXP} / ${appData.userStats.nextLevelXP} XP`}function attachEventListeners(){document.getElementById('tutorial-next').addEventListener('click',nextTutorialStep);document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>{const tab=item.getAttribute('data-tab');switchTab(tab)})});document.getElementById('add-task-btn').addEventListener('click',openTaskModal);document.getElementById('close-modal').addEventListener('click',closeTaskModal);document.getElementById('next-step-1').addEventListener('click',()=>{const title=document.getElementById('task-title').value.trim();if(!title){showToast('⚠️ Inserisci un titolo per il task','error');return}appData.tempTaskData.title=title;appData.tempTaskData.description=document.getElementById('task-description').value.trim();goToModalStep(2)});document.querySelectorAll('[data-urgent]').forEach(btn=>{btn.addEventListener('click',()=>{appData.tempTaskData.isUrgent=btn.getAttribute('data-urgent')==='true';goToModalStep(3)})});document.querySelectorAll('[data-important]').forEach(btn=>{btn.addEventListener('click',()=>{appData.tempTaskData.isImportant=btn.getAttribute('data-important')==='true';goToModalStep(4);showSuggestedQuadrant()})});document.getElementById('save-task').addEventListener('click',saveNewTask);document.getElementById('task-modal').addEventListener('click',(e)=>{if(e.target.id==='task-modal'){closeTaskModal()}})}function switchTab(tabName){document.querySelectorAll('.nav-item').forEach(item=>{item.classList.remove('active');if(item.getAttribute('data-tab')===tabName){item.classList.add('active')}});document.querySelectorAll('.tab-panel').forEach(panel=>{panel.classList.remove('active')});document.getElementById(`${tabName}-tab`).classList.add('active');if(tabName==='dashboard'){renderDashboard()}}function renderDashboard(){['q1','q2','q3','q4'].forEach(q=>renderQuadrantTasks(q))}function renderQuadrantTasks(quadrant){const container=document.getElementById(`${quadrant}-tasks`);const tasks=appData.tasks[quadrant];if(tasks.length===0){container.innerHTML='<p style="color:#9ca3af;font-size:14px;text-align:center">Nessun task</p>';return}container.innerHTML=tasks.map(task=>`<div class="task-item ${task.completed?'completed':''}" data-task-id="${task.id}"><div class="task-checkbox ${task.completed?'checked':''}" onclick="toggleTask('${quadrant}',${task.id})"></div><div class="task-content"><div class="task-title">${task.title}</div>${task.description?`<div class="task-description">${task.description}</div>`:''}</div></div>`).join('')}function toggleTask(quadrant,taskId){const task=appData.tasks[quadrant].find(t=>t.id===taskId);if(!task)return;task.completed=!task.completed;if(task.completed){appData.userStats.currentXP+=50;appData.userStats.weeklyCompleted++;appData.userStats.totalCompleted++;if(appData.userStats.currentXP>=appData.userStats.nextLevelXP){appData.userStats.level++;appData.userStats.currentXP-=appData.userStats.nextLevelXP;appData.userStats.nextLevelXP=Math.floor(appData.userStats.nextLevelXP*1.5);showToast(`🎊 Level Up! Ora sei livello ${appData.userStats.level}!`,'success',4000);NotificationSystem.notifyLevelUp(appData.userStats.level)}else{showToast('🎉 Task completato! +50 XP','success')}updateStatsUI()}saveUserData();renderQuadrantTasks(quadrant);const urgentCount=appData.tasks.q1.filter(t=>!t.completed).length;NotificationSystem.updateBadge(urgentCount)}function openTaskModal(){document.getElementById('task-modal').classList.add('show');document.body.style.overflow='hidden';goToModalStep(1);document.getElementById('task-title').value='';document.getElementById('task-description').value='';appData.tempTaskData={title:'',description:'',isUrgent:null,isImportant:null,quadrant:''}}function closeTaskModal(){document.getElementById('task-modal').classList.remove('show');document.body.style.overflow='auto'}function goToModalStep(stepNumber){document.querySelectorAll('.form-step').forEach(step=>{step.classList.remove('active')});document.getElementById(`step-${stepNumber}`).classList.add('active')}function showSuggestedQuadrant(){const {isUrgent,isImportant}=appData.tempTaskData;let quadrant='';let quadrantName='';let quadrantColor='';if(isUrgent&&isImportant){quadrant='q1';quadrantName='🔴 Urgente & Importante - Fai Subito';quadrantColor='#ef4444'}else if(!isUrgent&&isImportant){quadrant='q2';quadrantName='🟢 Importante & Non Urgente - Pianifica';quadrantColor='#10b981'}else if(isUrgent&&!isImportant){quadrant='q3';quadrantName='🟠 Urgente & Non Importante - Delega';quadrantColor='#f59e0b'}else{quadrant='q4';quadrantName='⚪ Non Urgente & Non Importante - Pianifica senza fretta';quadrantColor='#6b7280'}appData.tempTaskData.quadrant=quadrant;const badge=document.getElementById('suggested-quadrant');badge.textContent=quadrantName;badge.style.backgroundColor=quadrantColor}function saveNewTask(){const {title,description,quadrant}=appData.tempTaskData;const newTask={id:Date.now(),title,description,completed:false,createdAt:new Date().toISOString()};appData.tasks[quadrant].push(newTask);appData.userStats.currentXP+=10;saveUserData();updateStatsUI();renderDashboard();closeTaskModal();showToast('✅ Task aggiunto con successo! +10 XP','success')}function showToast(message,type='info',duration=3000){const toast=document.getElementById('toast');toast.textContent=message;toast.className=`toast ${type} show`;setTimeout(()=>{toast.classList.remove('show')},duration)}const NotificationSystem={enabled:false,config:{morningReminder:{enabled:true,time:'09:00'},eveningStreak:{enabled:true,time:'20:00'},urgentTasks:{enabled:true},celebrations:{enabled:true},doNotDisturb:{enabled:true,start:'23:00',end:'07:00'}},async init(){console.log('🔔 Initializing Notification System...');await this.loadConfig();if(await this.checkPermission()){this.enabled=true;this.scheduleAll();console.log('✅ Notifications enabled')}},async checkPermission(){if(!('Notification'in window)){console.warn('Notifications not supported');return false}if(Notification.permission==='granted'){return true}if(Notification.permission!=='denied'){const permission=await Notification.requestPermission();return permission==='granted'}return false},async requestPermission(){if(!('Notification'in window)){showToast('⚠️ Notifiche non supportate su questo dispositivo','error');return false}const permission=await Notification.requestPermission();if(permission==='granted'){this.enabled=true;showToast('✅ Notifiche attivate!','success');this.scheduleAll();return true}else{showToast('❌ Permesso notifiche negato','error');return false}},send(title,body,icon='🎯',tag='focusly'){if(!this.enabled||!this.canSendNow())return;if(Notification.permission==='granted'){new Notification(title,{body:body,icon:'/icons/icon-192x192.png',badge:'/icons/icon-72x72.png',tag:tag,requireInteraction:false,silent:false});this.logNotification(title,body)}},canSendNow(){if(!this.config.doNotDisturb.enabled)return true;const now=new Date();const currentTime=now.getHours()*60+now.getMinutes();const[startH,startM]=this.config.doNotDisturb.start.split(':').map(Number);const[endH,endM]=this.config.doNotDisturb.end.split(':').map(Number);const startTime=startH*60+startM;const endTime=endH*60+endM;if(startTime>endTime){return currentTime<endTime||currentTime>startTime}else{return currentTime<startTime||currentTime>endTime}},scheduleAll(){this.scheduleMorningReminder();this.scheduleEveningStreak();this.checkUrgentTasks()},scheduleMorningReminder(){if(!this.config.morningReminder.enabled)return;const now=new Date();const[hours,minutes]=this.config.morningReminder.time.split(':').map(Number);const scheduledTime=new Date(now.getFullYear(),now.getMonth(),now.getDate(),hours,minutes);if(scheduledTime<now){scheduledTime.setDate(scheduledTime.getDate()+1)}const delay=scheduledTime.getTime()-now.getTime();setTimeout(()=>{this.sendMorningReminder();setInterval(()=>this.sendMorningReminder(),24*60*60*1000)},delay)},scheduleEveningStreak(){if(!this.config.eveningStreak.enabled)return;const now=new Date();const[hours,minutes]=this.config.eveningStreak.time.split(':').map(Number);const scheduledTime=new Date(now.getFullYear(),now.getMonth(),now.getDate(),hours,minutes);if(scheduledTime<now){scheduledTime.setDate(scheduledTime.getDate()+1)}const delay=scheduledTime.getTime()-now.getTime();setTimeout(()=>{this.sendStreakReminder();setInterval(()=>this.sendStreakReminder(),24*60*60*1000)},delay)},sendMorningReminder(){const urgentCount=appData.tasks.q1.filter(t=>!t.completed).length;if(urgentCount>0){this.send('🎯 Buongiorno!',`Hai ${urgentCount} task urgent${urgentCount>1?'i':'e'} oggi. Inizia dalla Matrice Q1!`,'🎯','morning-reminder')}else{this.send('💪 Buongiorno!','Inizia la giornata con energia! Aggiungi i tuoi task di oggi.','💪','morning-reminder')}},sendStreakReminder(){const today=new Date().toDateString();const lastActivity=localStorage.getItem('lastActivity');if(lastActivity!==today){this.send('🔥 Mantieni il tuo Streak!',`Streak attuale: ${appData.userStats.streak} giorni. Completa almeno 1 task oggi!`,'🔥','streak-reminder')}},checkUrgentTasks(){if(!this.config.urgentTasks.enabled)return;setInterval(()=>{const urgentCount=appData.tasks.q1.filter(t=>!t.completed).length;if(urgentCount>=3){this.send('⚠️ Task Urgenti',`Hai ${urgentCount} task urgenti da completare!`,'⚠️','urgent-tasks')}},6*60*60*1000)},notifyLevelUp(newLevel){if(!this.config.celebrations.enabled)return;this.send('🎊 Level Up!',`Congratulazioni! Sei ora livello ${newLevel}!`,'🎊','level-up')},notifyTaskCompleted(taskTitle){if(!this.config.celebrations.enabled)return;this.send('✅ Task Completato!',`${taskTitle} - Ottimo lavoro! +50 XP`,'✅','task-completed')},updateBadge(count){if('setAppBadge'in navigator){if(count>0){navigator.setAppBadge(count)}else{navigator.clearAppBadge()}}},loadConfig(){const saved=localStorage.getItem('notificationConfig');if(saved){try{this.config=JSON.parse(saved)}catch(e){console.error('Error loading notification config:',e)}}},saveConfig(){localStorage.setItem('notificationConfig',JSON.stringify(this.config))},logNotification(title,body){const log=JSON.parse(localStorage.getItem('notificationLog')||'[]');log.push({title,body,timestamp:new Date().toISOString()});if(log.length>50)log.shift();localStorage.setItem('notificationLog',JSON.stringify(log))}};window.toggleTask=toggleTask;window.resetTutorial=resetTutorial;window.requestNotifications=()=>NotificationSystem.requestPermission();window.testNotification=()=>NotificationSystem.send('🧪 Test','Questa è una notifica di test!','🧪','test');window.NotificationSystem=NotificationSystem;console.log('✅ Focusly ADHD v2.0 loaded - © 2025 Edoardo Lucchina (Edoluck90)');
+</script>
+</body>
+</html>
