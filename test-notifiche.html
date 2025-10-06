@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Test Notifiche">
+<title>Test Notifiche</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.container{
+  background:white;
+  border-radius:20px;
+  padding:40px;
+  max-width:400px;
+  width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+h1{
+  text-align:center;
+  color:#667eea;
+  margin-bottom:10px;
+  font-size:28px;
+}
+.subtitle{
+  text-align:center;
+  color:#6c757d;
+  margin-bottom:30px;
+  font-size:14px;
+}
+.btn{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+  margin-bottom:12px;
+  transition:transform .2s;
+}
+.btn:active{transform:scale(.95)}
+.btn-primary{
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;
+  box-shadow:0 4px 15px rgba(102,126,234,.4);
+}
+.btn-success{
+  background:#10b981;
+  color:white;
+}
+.btn-info{
+  background:#3b82f6;
+  color:white;
+}
+.status{
+  padding:16px;
+  border-radius:12px;
+  margin-bottom:12px;
+  font-size:14px;
+  line-height:1.6;
+}
+.status-info{background:#e0f2fe;color:#0369a1;border-left:4px solid #0284c7}
+.status-success{background:#d1fae5;color:#065f46;border-left:4px solid #10b981}
+.status-error{background:#fee2e2;color:#991b1b;border-left:4px solid #ef4444}
+.status-warning{background:#fef3c7;color:#92400e;border-left:4px solid #f59e0b}
+.divider{
+  height:1px;
+  background:#e5e7eb;
+  margin:24px 0;
+}
+.code{
+  background:#1f2937;
+  color:#10b981;
+  padding:12px;
+  border-radius:8px;
+  font-family:monospace;
+  font-size:12px;
+  margin-top:8px;
+  word-break:break-all;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🔔 Test Notifiche</h1>
+<div class="subtitle">Debug sistema notifiche iOS</div>
+
+<div id="status-container"></div>
+
+<button class="btn btn-primary" onclick="checkSupport()">
+1️⃣ Verifica Supporto
+</button>
+
+<button class="btn btn-success" onclick="requestPermission()">
+2️⃣ Richiedi Permessi
+</button>
+
+<button class="btn btn-info" onclick="sendTestNotification()">
+3️⃣ Invia Test Notifica
+</button>
+
+<div class="divider"></div>
+
+<button class="btn btn-primary" onclick="checkAllAndTest()" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+🚀 Test Completo Automatico
+</button>
+
+<div style="margin-top:20px;text-align:center;font-size:12px;color:#6c757d">
+<strong>Istruzioni:</strong><br>
+1. Aggiungi alla Home Screen<br>
+2. Apri da Home Screen<br>
+3. Premi pulsanti in ordine<br>
+4. Chiudi app per vedere notifica
+</div>
+</div>
+
+<script>
+console.log('🔔 Test Notifiche Script Loaded');
+
+function showStatus(message, type = 'info') {
+  const container = document.getElementById('status-container');
+  const statusDiv = document.createElement('div');
+  statusDiv.className = `status status-${type}`;
+  statusDiv.innerHTML = message;
+  container.appendChild(statusDiv);
+
+  // Auto scroll to bottom
+  setTimeout(() => {
+    statusDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+function checkSupport() {
+  console.log('🔍 Checking notification support...');
+  showStatus('🔍 Controllo supporto notifiche...', 'info');
+
+  if (!('Notification' in window)) {
+    showStatus('❌ <strong>Notification API non supportata!</strong><br>Questo browser non supporta le notifiche web.<div class="code">Notification in window = false</div>', 'error');
+    return false;
+  }
+
+  showStatus('✅ <strong>Notification API supportata!</strong><br>Il browser supporta le notifiche web.', 'success');
+
+  const permission = Notification.permission;
+  console.log('📋 Current permission:', permission);
+
+  if (permission === 'granted') {
+    showStatus('✅ <strong>Permessi già concessi!</strong><br>Puoi inviare notifiche.<div class="code">Notification.permission = "granted"</div>', 'success');
+  } else if (permission === 'denied') {
+    showStatus('⚠️ <strong>Permessi negati!</strong><br>Hai negato i permessi. Devi resettare il sito.<div class="code">Notification.permission = "denied"</div>', 'error');
+  } else {
+    showStatus('⏳ <strong>Permessi non richiesti</strong><br>Clicca "Richiedi Permessi" per continuare.<div class="code">Notification.permission = "default"</div>', 'warning');
+  }
+
+  // Check if PWA
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (isPWA) {
+    showStatus('✅ <strong>App in modalità PWA!</strong><br>Aperta dalla Home Screen.', 'success');
+  } else {
+    showStatus('⚠️ <strong>Non in modalità PWA</strong><br>Apri dalla Home Screen per migliori risultati su iOS.', 'warning');
+  }
+
+  return true;
+}
+
+async function requestPermission() {
+  console.log('🔔 Requesting notification permission...');
+  showStatus('🔔 Richiesta permessi notifiche...', 'info');
+
+  if (!('Notification' in window)) {
+    showStatus('❌ Notifiche non supportate!', 'error');
+    return;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    console.log('✅ Permission result:', permission);
+
+    if (permission === 'granted') {
+      showStatus('🎉 <strong>Permessi concessi!</strong><br>Ora puoi ricevere notifiche.<div class="code">Result: "granted"</div>', 'success');
+    } else if (permission === 'denied') {
+      showStatus('❌ <strong>Permessi negati!</strong><br>Hai rifiutato i permessi.<div class="code">Result: "denied"</div>', 'error');
+    } else {
+      showStatus('⚠️ <strong>Permessi non decisi</strong><br>Nessuna azione presa.<div class="code">Result: "default"</div>', 'warning');
+    }
+  } catch (error) {
+    console.error('❌ Error requesting permission:', error);
+    showStatus('❌ <strong>Errore!</strong><br>Errore nella richiesta permessi.<div class="code">' + error.message + '</div>', 'error');
+  }
+}
+
+function sendTestNotification() {
+  console.log('📤 Sending test notification...');
+  showStatus('📤 Invio notifica di test...', 'info');
+
+  if (!('Notification' in window)) {
+    showStatus('❌ Notifiche non supportate!', 'error');
+    return;
+  }
+
+  if (Notification.permission !== 'granted') {
+    showStatus('⚠️ <strong>Permessi non concessi!</strong><br>Clicca prima "Richiedi Permessi".', 'warning');
+    return;
+  }
+
+  try {
+    const notification = new Notification('🧪 Test Notifica', {
+      body: 'Se vedi questo, le notifiche funzionano! 🎉',
+      icon: 'https://via.placeholder.com/192x192.png?text=✓',
+      badge: 'https://via.placeholder.com/96x96.png?text=!',
+      tag: 'test-notification',
+      requireInteraction: false,
+      silent: false
+    });
+
+    notification.onclick = function() {
+      console.log('🖱️ Notification clicked!');
+      window.focus();
+      this.close();
+    };
+
+    console.log('✅ Notification sent:', notification);
+    showStatus('✅ <strong>Notifica inviata!</strong><br><strong style="color:#f59e0b">CHIUDI L'APP</strong> (premi Home) per vedere la notifica.<br><br>⚠️ Su iOS le notifiche NON appaiono se l'app è aperta!', 'success');
+
+    setTimeout(() => {
+      showStatus('⏰ <strong>Reminder:</strong> Hai chiuso l'app? La notifica appare solo in background!', 'info');
+    }, 3000);
+
+  } catch (error) {
+    console.error('❌ Error sending notification:', error);
+    showStatus('❌ <strong>Errore invio!</strong><br>Impossibile inviare la notifica.<div class="code">' + error.message + '</div>', 'error');
+  }
+}
+
+async function checkAllAndTest() {
+  document.getElementById('status-container').innerHTML = '';
+  showStatus('🚀 <strong>Test Automatico Completo</strong><br>Controllo tutto e invio notifica...', 'info');
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Step 1: Check support
+  const supported = checkSupport();
+  if (!supported) return;
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Step 2: Request permission if needed
+  if (Notification.permission !== 'granted') {
+    await requestPermission();
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+
+  // Step 3: Send test notification
+  if (Notification.permission === 'granted') {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    sendTestNotification();
+  } else {
+    showStatus('⚠️ Non posso inviare notifica senza permessi!', 'warning');
+  }
+}
+
+// Auto check on load
+window.addEventListener('load', () => {
+  console.log('✅ Page loaded, checking support automatically...');
+  setTimeout(() => {
+    checkSupport();
+  }, 500);
+});
+
+console.log('✅ Test Notifiche Script Ready');
+</script>
+</body>
+</html>
